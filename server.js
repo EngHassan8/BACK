@@ -10,7 +10,7 @@ app.use(cors());
 
 // Connect to MongoDB
 mongoose
-  .connect("mongodb://localhost:27017/Election")
+  .connect("mongodb+srv://engHassan:xeIsjMR9znyohjiS@cluster0.ybtkrrk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
   .then(() => console.log("Database has been connected"))
   .catch((err) => console.log(err));
 
