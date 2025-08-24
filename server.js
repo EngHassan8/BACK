@@ -413,6 +413,8 @@ app.delete("/remove/:id", async (req, res) => {
 });
 
 // Start server on port 3000
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
+// Start server on Render / Local
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
