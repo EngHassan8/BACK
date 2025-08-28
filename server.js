@@ -130,7 +130,7 @@ app.post("/new/elction", async (req, res) => {
     const Getdate = new elctionNew(req.body);
     const SaveData = await Getdate.save();
     if (SaveData) {
-      res.send("Xogta waa la xareeyey");
+      res.send("Xogta waa la xareeyey DONE ");
     }
   } catch (error) {
     res.status(500).send("Error ayaa dhacay: " + error.message);
