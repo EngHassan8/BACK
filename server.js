@@ -184,31 +184,30 @@ app.delete("/remove/election/:id", async (req, res) => {
 
 // Candidates routes
 
-// POST new Candidate with image
+// Route
 app.post("/new/Candidates", upload.single("img"), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).send("Image file is required");
+    const { Name, Email, ID, Position, electionId } = req.body; // ✅ electionId ka hel
+    if (!electionId) {
+      return res.status(400).json({ error: "electionId is required" });
     }
-    const { Name, Email, ID, Position } = req.body;
-    if (!Name || !Email || !ID || !Position) {
-      return res.status(400).send("All fields are required");
-    }
-    const newData = new Candidates({
+
+    const newCandidate = new Candidate({
       Name,
       Email,
       ID,
       Position,
-      image: req.file.filename,
+      electionId, // ✅ kaydi electionId
+      image: req.file.filename
     });
-    await newData.save();
-    res.status(200).send("Candidate saved successfully");
+
+    await newCandidate.save();
+    res.status(201).json({ message: "Candidate saved successfully" });
   } catch (err) {
     console.error("Error while saving candidate:", err);
-    res.status(500).send("Waa jiray qalad markaas");
+    res.status(500).json({ error: err.message });
   }
 });
-
 // GET candidates (optionally filter by position)
 app.get("/get/candidate", async (req, res) => {
   try {
