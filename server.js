@@ -10,7 +10,7 @@ app.use(cors());
 
 // Connect to MongoDB
 mongoose
-  .connect("mongodb://localhost:27017/Election")
+  .connect("mongodb+srv://engHassan:sDCOYG47MCBWjtjU@cluster0.ybtkrrk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
   .then(() => console.log("Database has been connected"))
   .catch((err) => console.log(err));
 
@@ -340,7 +340,7 @@ app.delete("/vote/:id", async (req, res) => {
 // Admin routes
 
 // POST admin register
-app.post("/admin/Register", async (req, res) => {
+app.post("/damin/Register", async (req, res) => {
   try {
     const newAdmin = new Admin(req.body);
     const saveAdmin = await newAdmin.save();
