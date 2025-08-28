@@ -10,16 +10,16 @@ app.use(cors());
 
 // Connect to MongoDB
 mongoose
-  .connect("mongodb+srv://engHassan:xeIsjMR9znyohjiS@cluster0.ybtkrrk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+  .connect("mongodb://localhost:27017/Election")
   .then(() => console.log("Database has been connected"))
   .catch((err) => console.log(err));
 
-// Import your schemas (hubi inay sax yihiin)
+// Import your schemas (make sure these paths and names are correct)
 const TotalVotes = require("./modal/TotalVotes");
+const elctionNew = require("./modal/electionNew");
 const Candidates = require("./modal/Candidates");
 const Votes = require("./modal/Votes");
 const Admin = require("./modal/Admin");
-const electionNew = require("./modal/electionNew");
 
 // Static folder for images
 app.use("/sawir", express.static("images"));
@@ -29,6 +29,7 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "images"),
   filename: (req, file, cb) => cb(null, file.originalname),
 });
+
 const upload = multer({ storage });
 
 // ===== Routes =====
@@ -66,10 +67,10 @@ app.post("/admin/voter", async (req, res) => {
     const { _id, Name: n, ID: id } = student;
     res.json({ success: true, data: { _id, Name: n, ID: id } });
   } catch (err) {
+    console.error("POST /admin/voter error:", err);
     res.status(500).json({ success: false, error: "Server error" });
   }
 });
-
 
 // GET voter profile
 app.get("/voter/profile", async (req, res) => {
@@ -121,92 +122,92 @@ app.get("/total", async (req, res) => {
   res.json({ total: count });
 });
 
-// ==== Election routes ====
+// ElectionNew routes
 
 // POST new election
-app.post("/new/election", async (req, res) => {
+app.post("/new/elction", async (req, res) => {
   try {
-    const newElection = new electionNew(req.body);
-    const savedElection = await newElection.save();
-    res.status(201).send(savedElection);
+    const Getdate = new elctionNew(req.body);
+    const SaveData = await Getdate.save();
+    if (SaveData) {
+      res.send("Xogta waa la xareeyey");
+    }
   } catch (error) {
-    console.error("Error saving election:", error);
-    res.status(500).send({ message: "Error saving election", error: error.message });
+    res.status(500).send("Error ayaa dhacay: " + error.message);
   }
 });
 
 // GET all elections
 app.get("/get/election", async (req, res) => {
-  try {
-    const elections = await electionNew.find();
-    res.send(elections);
-  } catch (error) {
-    res.status(500).send({ message: "Error fetching elections", error: error.message });
-  }
+  const GetaDate = await elctionNew.find();
+  res.send(GetaDate);
 });
 
 // UPDATE election by id
 app.put("/update/election/:id", async (req, res) => {
-  try {
-    const updateResult = await electionNew.updateOne({ _id: req.params.id }, { $set: req.body });
-    if (updateResult.modifiedCount > 0) {
-      res.send("Data has been updated");
-    } else {
-      res.status(404).send("Data not found or not updated");
-    }
-  } catch (error) {
-    res.status(500).send({ message: "Error updating election", error: error.message });
+  const updateData = await elctionNew.updateOne({ _id: req.params.id }, { $set: req.body });
+  if (updateData.modifiedCount > 0) {
+    res.send("Data has been updated");
+  } else {
+    res.status(404).send("Data not found or not updated");
   }
+});
+
+// Update election status
+app.put("/election/:id/status", async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  try {
+    const election = await elctionNew.findByIdAndUpdate(id, { status }, { new: true });
+    if (!election) return res.status(404).send("Election not found");
+    res.json(election);
+  } catch (error) {
+    res.status(500).send("Server error");
+  }
+});
+
+// Total count of elections
+app.get("/total/election", async (req, res) => {
+  const totalElection = await elctionNew.countDocuments();
+  res.send({ totalElection });
 });
 
 // DELETE election by id
 app.delete("/remove/election/:id", async (req, res) => {
-  try {
-    const deleteResult = await electionNew.deleteOne({ _id: req.params.id });
-    if (deleteResult.deletedCount > 0) {
-      res.send("Data has been deleted");
-    } else {
-      res.status(404).send("Data not found");
-    }
-  } catch (error) {
-    res.status(500).send({ message: "Error deleting election", error: error.message });
+  const GetDelete = await elctionNew.deleteOne({ _id: req.params.id });
+  if (GetDelete.deletedCount > 0) {
+    res.send("Data has been deleted");
+  } else {
+    res.status(404).send("Data not found");
   }
 });
 
-// ==== Candidate routes ====
+// Candidates routes
 
 // POST new Candidate with image
 app.post("/new/Candidates", upload.single("img"), async (req, res) => {
   try {
-    const { Name, Email, ID, Position, electionId } = req.body;
-
-    // Check if all required fields exist
-    if (!Name || !Email || !ID || !Position || !electionId) {
-      return res.status(400).json({ error: "All fields including electionId are required" });
-    }
-
     if (!req.file) {
-      return res.status(400).json({ error: "Image file is required" });
+      return res.status(400).send("Image file is required");
     }
-
-    const newCandidate = new Candidates({
+    const { Name, Email, ID, Position } = req.body;
+    if (!Name || !Email || !ID || !Position) {
+      return res.status(400).send("All fields are required");
+    }
+    const newData = new Candidates({
       Name,
       Email,
       ID,
       Position,
-      electionId,        // <-- Important: include electionId
       image: req.file.filename,
-      voteCount: 0
     });
-
-    await newCandidate.save();
-    res.status(200).json({ message: "Candidate saved successfully" });
+    await newData.save();
+    res.status(200).send("Candidate saved successfully");
   } catch (err) {
     console.error("Error while saving candidate:", err);
-    res.status(500).json({ error: "Server error while saving candidate", details: err.message });
+    res.status(500).send("Waa jiray qalad markaas");
   }
 });
-
 
 // GET candidates (optionally filter by position)
 app.get("/get/candidate", async (req, res) => {
@@ -219,16 +220,6 @@ app.get("/get/candidate", async (req, res) => {
     res.status(500).json({ message: "Error getting candidates", err });
   }
 });
-app.get("/total/election", async (req, res) => {
-  try {
-    const totalElection = await electionNew.countDocuments(); // tirinta dukumentiyada
-    res.json({ totalElection });
-  } catch (err) {
-    console.error("Error fetching total elections:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
 
 // UPDATE candidate by id
 app.put("/update/candidate/:id", async (req, res) => {
@@ -250,34 +241,30 @@ app.delete("/remove/candidate/:id", async (req, res) => {
   }
 });
 
-// ==== Votes routes ====
+// Votes routes
 
-// POST vote
 // POST vote
 app.post("/vote", async (req, res) => {
   try {
     const { voterId, candidateId, Position } = req.body;
 
-    // Hubi haddii horey cod loo dhiibtay booskan
+    // Hubi in qofkani horey cod u dhiibay booskan
     const existingVote = await Votes.findOne({ voterId, Position });
     if (existingVote) {
       return res.status(400).json({ error: "Cod hore ayaa loo dhiibtay booskan." });
     }
 
-    // Save vote
     const newVote = new Votes({ voterId, candidateId, Position });
     await newVote.save();
 
-    // Update candidate voteCount
     await Candidates.findByIdAndUpdate(candidateId, { $inc: { voteCount: 1 } });
 
-    res.status(201).json({ message: "Codka waa la diiwaangeliyey" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Waxaa dhacay khalad server." });
+    res.status(200).json({ message: "Codka waa la diiwaangeliyey!" });
+  } catch (error) {
+    console.error("Vote error:", error);
+    res.status(500).json({ error: "Waxaa dhacay qalad server-ka ah." });
   }
 });
-
 
 
 // GET results (return candidates with their voteCount)
@@ -310,7 +297,7 @@ app.get('/vote/checkAll', async (req, res) => {
   }
 });
 
-// DELETE vote by position (remove user's vote)
+///////////////
 app.delete("/vote/remove", async (req, res) => {
   try {
     const { voterId, Position } = req.body;
@@ -326,6 +313,10 @@ app.delete("/vote/remove", async (req, res) => {
     res.status(500).json({ error: "Error deleting vote" });
   }
 });
+
+
+
+
 
 // DELETE vote by id
 app.delete("/vote/:id", async (req, res) => {
@@ -346,7 +337,7 @@ app.delete("/vote/:id", async (req, res) => {
   }
 });
 
-// ==== Admin routes ====
+// Admin routes
 
 // POST admin register
 app.post("/admin/Register", async (req, res) => {
@@ -382,39 +373,30 @@ app.get("/get/Mamule", async (req, res) => {
 });
 
 // PUT update admin by ID
-app.put("/update/:id", async (req, res) => {
+// PUT update admin
+app.put("/admin/update/:id", async (req, res) => {
   try {
-    const updateData = await Admin.updateOne(
-      { _id: req.params.id },
-      { $set: req.body }
-    );
-    if (updateData.modifiedCount > 0) {
-      res.status(200).send({ success: "Data has been updated" });
-    } else {
-      res.status(404).send({ error: "Data not found or not updated" });
-    }
+    const result = await Admin.updateOne({ _id: req.params.id }, { $set: req.body });
+    if (result.modifiedCount > 0) res.send("Admin updated successfully");
+    else res.status(404).send("Admin not found");
   } catch (error) {
-    res.status(500).send({ error: "Server error: " + error.message });
+    res.status(500).send("Error updating admin: " + error.message);
   }
 });
 
 // DELETE admin by ID
-app.delete("/remove/:id", async (req, res) => {
+app.delete("/admin/remove/:id", async (req, res) => {
   try {
     const result = await Admin.deleteOne({ _id: req.params.id });
-    if (result.deletedCount > 0) {
-      res.send("Data has been deleted");
-    } else {
-      res.status(404).send("Data not found");
-    }
+    if (result.deletedCount > 0) res.send("Admin deleted successfully");
+    else res.status(404).send("Admin not found");
   } catch (error) {
-    res.status(500).send("Server error: " + error.message);
+    res.status(500).send("Error deleting admin: " + error.message);
   }
 });
 
+
 // Start server on port 3000
-// Start server on Render / Local
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(3000, () => {
+  console.log("Server running on port 3000");
 });
