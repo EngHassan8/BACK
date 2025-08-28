@@ -192,7 +192,7 @@ app.post("/new/Candidates", upload.single("img"), async (req, res) => {
       return res.status(400).json({ error: "electionId is required" });
     }
 
-    const newCandidate = new Candidate({
+    const newCandidate = new Candidates({
       Name,
       Email,
       ID,
