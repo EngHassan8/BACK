@@ -125,23 +125,32 @@ app.get("/total", async (req, res) => {
 // ElectionNew routes
 
 // POST new election
-app.post("/new/elction", async (req, res) => {
+
+// ✅ Create election (typo sax ah)
+app.post("/new/election", async (req, res) => {
   try {
-    const Getdate = new elctionNew(req.body);
-    const SaveData = await Getdate.save();
-    if (SaveData) {
-      res.send("Xogta waa la xareeyey DONE ");
+    const newElection = new elctionNew(req.body);
+    const saved = await newElection.save();
+    if (saved) {
+      res.send("Election created successfully");
     }
   } catch (error) {
-    res.status(500).send("Error ayaa dhacay: " + error.message);
+    res.status(500).send("Error: " + error.message);
   }
 });
 
+
 // GET all elections
 app.get("/get/election", async (req, res) => {
-  const GetaDate = await elctionNew.find();
-  res.send(GetaDate);
+  try {
+    const data = await elctionNew.find();
+    res.json(data);
+  } catch (err) {
+    console.error("Error fetching elections:", err.message);
+    res.status(500).json({ error: "Server error", details: err.message });
+  }
 });
+
 
 // UPDATE election by id
 app.put("/update/election/:id", async (req, res) => {
