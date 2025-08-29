@@ -127,29 +127,41 @@ app.get("/total", async (req, res) => {
 // POST new election
 
 // ✅ Create election (typo sax ah)
+// CREATE election
 app.post("/new/election", async (req, res) => {
   try {
-    const newElection = new elctionNew(req.body);
+    const newElection = new elctionNew(req.body); // ← sax model-ka
     const saved = await newElection.save();
+
     if (saved) {
-      res.send("Election created successfully");
+      res.status(201).json({
+        message: "Election created successfully",
+        election: saved,
+      });
     }
   } catch (error) {
-    res.status(500).send("Error: " + error.message);
+    console.error("Error creating election:", error.message);
+    res.status(500).json({
+      error: "Failed to create election",
+      details: error.message,
+    });
   }
 });
-
 
 // GET all elections
 app.get("/get/election", async (req, res) => {
   try {
     const data = await elctionNew.find();
-    res.json(data);
+    res.status(200).json(data);
   } catch (err) {
     console.error("Error fetching elections:", err.message);
-    res.status(500).json({ error: "Server error", details: err.message });
+    res.status(500).json({
+      error: "Failed to fetch elections",
+      details: err.message,
+    });
   }
 });
+
 
 
 // UPDATE election by id
