@@ -72,6 +72,7 @@ app.post("/admin/voter", async (req, res) => {
   }
 });
 
+
 // GET voter profile
 app.get("/voter/profile", async (req, res) => {
   const { Name, ID } = req.query;
@@ -148,6 +149,15 @@ app.get("/get/election", async (req, res) => {
 });
 
 
+// DELETE election by id
+app.delete("/remove/election/:id", async (req, res) => {
+  const GetDelete = await elctionNew.deleteOne({ _id: req.params.id });
+  if (GetDelete.deletedCount > 0) {
+    res.send("Data has been deleted");
+  } else {
+    res.status(404).send("Data not found");
+  }
+});
 
 
 // UPDATE election by id
@@ -179,15 +189,8 @@ app.get("/total/election", async (req, res) => {
   res.send({ totalElection });
 });
 
-// DELETE election by id
-app.delete("/remove/election/:id", async (req, res) => {
-  const GetDelete = await elctionNew.deleteOne({ _id: req.params.id });
-  if (GetDelete.deletedCount > 0) {
-    res.send("Data has been deleted");
-  } else {
-    res.status(404).send("Data not found");
-  }
-});
+
+
 
 // Candidates routes
 
