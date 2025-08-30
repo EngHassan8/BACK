@@ -127,40 +127,26 @@ app.get("/total", async (req, res) => {
 // POST new election
 
 // ✅ Create election (typo sax ah)
-// CREATE election
-app.post("/new/election", async (req, res) => {
-  try {
-    const newElection = new elctionNew(req.body); // ← sax model-ka
-    const saved = await newElection.save();
 
-    if (saved) {
-      res.status(201).json({
-        message: "Election created successfully",
-        election: saved,
-      });
+// POST new election
+app.post("/new/elction", async (req, res) => {
+  try {
+    const Getdate = new elctionNew(req.body);
+    const SaveData = await Getdate.save();
+    if (SaveData) {
+      res.send("Xogta waa la xareeyey");
     }
   } catch (error) {
-    console.error("Error creating election:", error.message);
-    res.status(500).json({
-      error: "Failed to create election",
-      details: error.message,
-    });
+    res.status(500).send("Error ayaa dhacay: " + error.message);
   }
 });
 
 // GET all elections
 app.get("/get/election", async (req, res) => {
-  try {
-    const data = await elctionNew.find();
-    res.status(200).json(data);
-  } catch (err) {
-    console.error("Error fetching elections:", err.message);
-    res.status(500).json({
-      error: "Failed to fetch elections",
-      details: err.message,
-    });
-  }
+  const GetaDate = await elctionNew.find();
+  res.send(GetaDate);
 });
+
 
 
 
